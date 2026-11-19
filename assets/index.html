@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UIB L&F — Portal Lost & Found Kampus</title>
+    <title>UIB L&amp;F — Portal Lost &amp; Found Kampus</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Supabase JS v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,8 +21,8 @@
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --radius: 14px;
-            --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            --radius: 16px;
+            --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
         }
 
         * {
@@ -145,8 +145,8 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.4rem;
-            border-radius: 11px;
+            padding: 0.78rem 1.4rem;
+            border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
             border: none;
@@ -177,12 +177,9 @@
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-dark);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
         }
 
         .btn-white {
@@ -248,6 +245,61 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ================= LOGIN MODERN CARD ================= */
+        .login-shell {
+            min-height: calc(100vh - 180px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 2.25rem;
+            box-shadow: var(--shadow);
+        }
+
+        .login-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 1rem;
+        }
+
+        .login-title {
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.35rem;
+        }
+
+        .login-subtitle {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            color: var(--text-main);
+            padding: 0.95rem 1.05rem;
+            border-radius: 14px;
+            margin-bottom: 1.4rem;
+            font-size: 0.86rem;
         }
 
         /* ================= HERO ================= */
@@ -411,13 +463,14 @@
         }
 
         .search-input, .form-control {
-            padding: 0.75rem 1rem;
+            padding: 0.78rem 1rem;
             border: 1.5px solid var(--border);
-            border-radius: 10px;
+            border-radius: 11px;
             font-size: 0.95rem;
             outline: none;
             background: #f8fafc;
             width: 100%;
+            transition: border-color 0.15s ease, background 0.15s ease;
         }
 
         .search-input:focus, .form-control:focus {
@@ -449,22 +502,12 @@
             padding: 2.2rem;
         }
 
-        .form-group { margin-bottom: 1.25rem; }
+        .form-group { margin-bottom: 1.15rem; }
         .form-group label {
             display: block;
             font-weight: 700;
-            font-size: 0.92rem;
-            margin-bottom: 0.45rem;
-        }
-
-        .demo-box {
-            background: var(--primary-light);
-            border: 1px solid #bfdbfe;
-            color: #1e3a8a;
-            padding: 1rem 1.15rem;
-            border-radius: 12px;
-            margin-bottom: 1.35rem;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
         }
 
         .footer {
@@ -508,21 +551,54 @@
                 <div class="brand-icon">🔍</div>
                 <span>UIB L&amp;F</span>
             </div>
-            <nav class="nav-links">
-                <button type="button" class="nav-link active" data-goto="beranda">Beranda</button>
+            <nav class="nav-links" id="portalNav" style="display:none;">
+                <button type="button" class="nav-link" data-goto="beranda">Beranda</button>
                 <button type="button" class="nav-link" data-goto="katalog">Katalog Barang</button>
                 <button type="button" class="nav-link" data-goto="lapor">Lapor Barang</button>
-                <button type="button" class="nav-link" data-goto="login" id="navLoginBtn">Login UIB</button>
                 <span id="authBadge" class="auth-pill" style="display:none;"></span>
-                <button type="button" class="btn btn-outline btn-sm" id="logoutBtn" style="display:none;">Keluar</button>
+                <button type="button" class="btn btn-outline btn-sm" id="logoutBtn">Keluar</button>
             </nav>
         </div>
     </header>
 
     <main class="container">
 
+        <!-- HALAMAN LOGIN (TAMPIL PERTAMA KALI SAAT BELUM LOGIN) -->
+        <section id="view-login" class="page-view active">
+            <div class="login-shell">
+                <div class="login-card">
+                    <div class="login-badge">🎓 Portal Civitas UIB</div>
+                    <h1 class="login-title">Masuk ke UIB L&amp;F</h1>
+                    <p class="login-subtitle">Login terlebih dahulu untuk mengakses portal dan melaporkan barang hilang atau temuan.</p>
+
+                    <div class="demo-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
+                            <strong>Akun Demo Prototype</strong>
+                            <button type="button" class="btn btn-outline btn-sm" id="fillDemoBtn">⚡ Isi Otomatis</button>
+                        </div>
+                        <div>Email: <code>demo@uib.edu</code></div>
+                        <div>Password: <code>uib12345</code></div>
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Kampus UIB</label>
+                            <input type="email" id="loginEmail" class="form-control" value="demo@uib.edu" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" class="form-control" value="uib12345" required>
+                        </div>
+                        <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">
+                            🔐 Masuk &amp; Lanjutkan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
         <!-- 1. HALAMAN BERANDA -->
-        <section id="view-beranda" class="page-view active">
+        <section id="view-beranda" class="page-view">
             <div class="hero">
                 <span class="hero-badge">🎓 UIB L&amp;F — Lost &amp; Found System</span>
                 <h1>Kehilangan Barang di Kampus UIB? Atau Menemukan Milik Orang Lain?</h1>
@@ -596,71 +672,39 @@
                 <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.4rem;">Formulir Laporan Barang</h2>
                 <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Isi data dengan lengkap agar pemilik atau penemu dapat segera menghubungi kamu.</p>
 
-                <div id="loginNotice" class="demo-box" style="display:none;">
-                    🔒 Kamu perlu <strong>login akun UIB</strong> terlebih dahulu sebelum mempublikasikan laporan.
-                    <button type="button" class="btn btn-primary btn-sm" style="margin-top:0.5rem;" data-goto="login">Ke Halaman Login</button>
-                </div>
-
                 <form id="reportForm">
                     <div class="form-group">
-                        <label>Jenis Laporan</label>
+                        <label for="reportType">Jenis Laporan</label>
                         <select id="reportType" class="form-control">
                             <option value="found">🟢 Saya Menemukan Barang</option>
                             <option value="lost">🟠 Saya Kehilangan Barang</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Nama Barang *</label>
+                        <label for="itemName">Nama Barang *</label>
                         <input type="text" id="itemName" class="form-control" placeholder="Contoh: Dompet Kulit Hitam / KTM Sistem Informasi" required>
                     </div>
                     <div class="form-group">
-                        <label>Kategori *</label>
+                        <label for="itemCategory">Kategori *</label>
                         <select id="itemCategory" class="form-control">
-                            <option value="Dokumen & KTM">Dokumen & KTM</option>
+                            <option value="Dokumen & KTM">Dokumen &amp; KTM</option>
                             <option value="Elektronik">Elektronik</option>
-                            <option value="Kunci & Aksesoris">Kunci & Aksesoris</option>
+                            <option value="Kunci & Aksesoris">Kunci &amp; Aksesoris</option>
                             <option value="Perlengkapan Pribadi">Perlengkapan Pribadi</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Lokasi di UIB *</label>
+                        <label for="itemLocation">Lokasi di UIB *</label>
                         <input type="text" id="itemLocation" class="form-control" placeholder="Contoh: Gedung A Lantai 2 / Kantin UIB" required>
                     </div>
                     <div class="form-group">
-                        <label>No. WhatsApp Aktif *</label>
+                        <label for="itemContact">No. WhatsApp Aktif *</label>
                         <input type="tel" id="itemContact" class="form-control" placeholder="08xxxxxxxxxx" required>
                     </div>
                     <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
                         <button type="submit" id="submitReportBtn" class="btn btn-primary" style="flex:1;">🚀 Publikasikan Laporan</button>
                         <button type="button" class="btn btn-outline" data-goto="beranda">Batal</button>
                     </div>
-                </form>
-            </div>
-        </section>
-
-        <!-- 4. HALAMAN LOGIN DEMO UIB -->
-        <section id="view-login" class="page-view">
-            <div class="form-card">
-                <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.4rem;">Login Civitas UIB (Mode Demo)</h2>
-                <p style="color:var(--text-muted); margin-bottom: 1.25rem;">Masuk menggunakan akun demo bersama untuk menguji pengiriman laporan terautentikasi.</p>
-
-                <div class="demo-box">
-                    <strong>Kredensial Demo Prototype:</strong><br>
-                    Email: <code>demo@uib.edu</code><br>
-                    Password: <code>uib12345</code><br>
-                    <button type="button" class="btn btn-outline btn-sm" id="fillDemoBtn" style="margin-top:0.6rem;">⚡ Isi Otomatis Akun Demo</button>
-                </div>
-
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label>Email Kampus UIB</label>
-                        <input type="email" id="loginEmail" class="form-control" value="demo@uib.edu" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="loginPassword" class="form-control" value="uib12345" required>
-                    </div>
-                    <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width:100%;">🔐 Masuk ke UIB L&amp;F</button>
                 </form>
             </div>
         </section>
@@ -700,27 +744,45 @@
                 setTimeout(() => toast.classList.remove('show'), 2800);
             }
 
+            function switchPage(pageId) {
+                if (!currentUser && pageId !== 'login') {
+                    pageId = 'login';
+                }
+
+                document.querySelectorAll('.page-view').forEach(page => page.classList.remove('active'));
+                const targetPage = document.getElementById('view-' + pageId);
+                if (targetPage) targetPage.classList.add('active');
+
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('data-goto') === pageId);
+                });
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (pageId === 'katalog') renderCatalog();
+                updateStats();
+            }
+
             // ================= AUTH STATE =================
             function updateAuthUI() {
-                const navLoginBtn = document.getElementById('navLoginBtn');
+                const portalNav = document.getElementById('portalNav');
                 const authBadge = document.getElementById('authBadge');
-                const logoutBtn = document.getElementById('logoutBtn');
-                const loginNotice = document.getElementById('loginNotice');
                 const submitBtn = document.getElementById('submitReportBtn');
 
                 if (currentUser) {
-                    navLoginBtn.style.display = 'none';
+                    portalNav.style.display = 'flex';
                     authBadge.style.display = 'inline-flex';
                     authBadge.textContent = `✅ ${currentUser.email}`;
-                    logoutBtn.style.display = 'inline-flex';
-                    loginNotice.style.display = 'none';
                     submitBtn.disabled = false;
+
+                    const activeView = document.querySelector('.page-view.active');
+                    if (!activeView || activeView.id === 'view-login') {
+                        switchPage('beranda');
+                    }
                 } else {
-                    navLoginBtn.style.display = 'inline-flex';
+                    portalNav.style.display = 'none';
                     authBadge.style.display = 'none';
-                    logoutBtn.style.display = 'none';
-                    loginNotice.style.display = 'block';
                     submitBtn.disabled = true;
+                    switchPage('login');
                 }
             }
 
@@ -758,7 +820,7 @@
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
                 btn.disabled = false;
-                btn.textContent = '🔐 Masuk ke UIB L&F';
+                btn.textContent = '🔐 Masuk & Lanjutkan';
 
                 if (error) {
                     showToast('❌ Login gagal: ' + error.message);
@@ -768,13 +830,13 @@
                 currentUser = data.user;
                 updateAuthUI();
                 showToast('✅ Berhasil login sebagai ' + data.user.email);
-                switchPage('lapor');
+                switchPage('beranda');
             });
 
             document.getElementById('logoutBtn').addEventListener('click', async () => {
                 await supabaseClient.auth.signOut();
                 showToast('👋 Kamu telah keluar.');
-                switchPage('beranda');
+                switchPage('login');
             });
 
             // ================= FETCH DATA DARI SUPABASE =================
@@ -786,7 +848,6 @@
 
                 if (error) {
                     console.error('Supabase fetch error:', error);
-                    showToast('⚠️ Gagal memuat data dari Supabase.');
                     return;
                 }
 
@@ -805,20 +866,6 @@
             }
 
             // ================= NAVIGASI & RIPPLE =================
-            function switchPage(pageId) {
-                document.querySelectorAll('.page-view').forEach(page => page.classList.remove('active'));
-                const targetPage = document.getElementById('view-' + pageId);
-                if (targetPage) targetPage.classList.add('active');
-
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('data-goto') === pageId);
-                });
-
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                if (pageId === 'katalog') renderCatalog();
-                updateStats();
-            }
-
             document.querySelectorAll('[data-goto]').forEach(el => {
                 el.addEventListener('click', function() {
                     switchPage(this.getAttribute('data-goto'));
