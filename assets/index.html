@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UIB L&F — Portal Lost & Found Kampus</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -90,6 +92,7 @@
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .nav-link {
@@ -122,6 +125,18 @@
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
 
+        .auth-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: #dcfce7;
+            color: #166534;
+        }
+
         /* ================= BUTTONS & EFEK TEKAN ================= */
         .btn {
             position: relative;
@@ -140,14 +155,25 @@
             user-select: none;
         }
 
-        .btn:hover {
+        .btn-sm {
+            padding: 0.5rem 0.9rem;
+            font-size: 0.85rem;
+            border-radius: 9px;
+        }
+
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
         }
 
-        .btn:active {
+        .btn:active:not(:disabled) {
             transform: scale(0.92) !important;
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1) !important;
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
         }
 
         .btn-primary {
@@ -155,7 +181,7 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: var(--primary-dark);
         }
 
@@ -170,7 +196,7 @@
             border: 1px solid rgba(255, 255, 255, 0.35);
         }
 
-        .btn-glass:hover {
+        .btn-glass:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.28);
         }
 
@@ -180,17 +206,11 @@
             border: 1.5px solid var(--border);
         }
 
-        .btn-outline:hover {
+        .btn-outline:hover:not(:disabled) {
             border-color: var(--primary);
             color: var(--primary);
         }
 
-        .btn-danger {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Efek gelombang klik */
         .ripple {
             position: absolute;
             border-radius: 50%;
@@ -437,6 +457,16 @@
             margin-bottom: 0.45rem;
         }
 
+        .demo-box {
+            background: var(--primary-light);
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            padding: 1rem 1.15rem;
+            border-radius: 12px;
+            margin-bottom: 1.35rem;
+            font-size: 0.88rem;
+        }
+
         .footer {
             background: white;
             border-top: 1px solid var(--border);
@@ -447,7 +477,6 @@
             font-size: 0.9rem;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 24px;
@@ -483,7 +512,9 @@
                 <button type="button" class="nav-link active" data-goto="beranda">Beranda</button>
                 <button type="button" class="nav-link" data-goto="katalog">Katalog Barang</button>
                 <button type="button" class="nav-link" data-goto="lapor">Lapor Barang</button>
-                <button type="button" class="nav-link" data-goto="laporan-saya">Laporan Saya</button>
+                <button type="button" class="nav-link" data-goto="login" id="navLoginBtn">Login UIB</button>
+                <span id="authBadge" class="auth-pill" style="display:none;"></span>
+                <button type="button" class="btn btn-outline btn-sm" id="logoutBtn" style="display:none;">Keluar</button>
             </nav>
         </div>
     </header>
@@ -521,17 +552,17 @@
             <div class="steps-grid">
                 <div class="step-card">
                     <div class="step-number">1</div>
-                    <h3>Unggah Informasi</h3>
-                    <p>Isi detail barang yang ditemukan atau hilang, lengkap dengan lokasi di area gedung kampus UIB.</p>
+                    <h3>Login Akun UIB</h3>
+                    <p>Masuk menggunakan akun civitas UIB agar setiap laporan terverifikasi dan mencegah laporan palsu.</p>
                 </div>
                 <div class="step-card">
                     <div class="step-number">2</div>
-                    <h3>Cari di Katalog</h3>
-                    <p>Gunakan fitur pencarian instan berdasarkan nama barang, kategori, atau lokasi gedung.</p>
+                    <h3>Unggah &amp; Cari di Katalog</h3>
+                    <p>Laporkan barang temuan/hilang atau cari barang berdasarkan nama dan lokasi gedung di UIB.</p>
                 </div>
                 <div class="step-card">
                     <div class="step-number">3</div>
-                    <h3>Klaim & Hubungi</h3>
+                    <h3>Klaim &amp; Hubungi</h3>
                     <p>Terhubung langsung dengan nomor WhatsApp pelapor untuk pengambilan atau pengembalian barang.</p>
                 </div>
             </div>
@@ -555,7 +586,7 @@
                     <button type="button" class="filter-btn" data-filter="lost">🟠 Dicari</button>
                 </div>
             </div>
-            
+
             <div class="items-grid" id="catalogGrid"></div>
         </section>
 
@@ -564,7 +595,12 @@
             <div class="form-card">
                 <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.4rem;">Formulir Laporan Barang</h2>
                 <p style="color:var(--text-muted); margin-bottom: 1.5rem;">Isi data dengan lengkap agar pemilik atau penemu dapat segera menghubungi kamu.</p>
-                
+
+                <div id="loginNotice" class="demo-box" style="display:none;">
+                    🔒 Kamu perlu <strong>login akun UIB</strong> terlebih dahulu sebelum mempublikasikan laporan.
+                    <button type="button" class="btn btn-primary btn-sm" style="margin-top:0.5rem;" data-goto="login">Ke Halaman Login</button>
+                </div>
+
                 <form id="reportForm">
                     <div class="form-group">
                         <label>Jenis Laporan</label>
@@ -595,23 +631,38 @@
                         <input type="tel" id="itemContact" class="form-control" placeholder="08xxxxxxxxxx" required>
                     </div>
                     <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
-                        <button type="submit" class="btn btn-primary" style="flex:1;">🚀 Publikasikan Laporan</button>
+                        <button type="submit" id="submitReportBtn" class="btn btn-primary" style="flex:1;">🚀 Publikasikan Laporan</button>
                         <button type="button" class="btn btn-outline" data-goto="beranda">Batal</button>
                     </div>
                 </form>
             </div>
         </section>
 
-        <!-- 4. HALAMAN LAPORAN SAYA -->
-        <section id="view-laporan-saya" class="page-view">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem; flex-wrap:wrap; gap:1rem;">
-                <div>
-                    <h2 style="font-size: 1.6rem; font-weight: 800;">Laporan Saya</h2>
-                    <p style="color:var(--text-muted);">Daftar laporan barang yang pernah kamu buat di perangkat ini</p>
+        <!-- 4. HALAMAN LOGIN DEMO UIB -->
+        <section id="view-login" class="page-view">
+            <div class="form-card">
+                <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.4rem;">Login Civitas UIB (Mode Demo)</h2>
+                <p style="color:var(--text-muted); margin-bottom: 1.25rem;">Masuk menggunakan akun demo bersama untuk menguji pengiriman laporan terautentikasi.</p>
+
+                <div class="demo-box">
+                    <strong>Kredensial Demo Prototype:</strong><br>
+                    Email: <code>demo@uib.edu</code><br>
+                    Password: <code>uib12345</code><br>
+                    <button type="button" class="btn btn-outline btn-sm" id="fillDemoBtn" style="margin-top:0.6rem;">⚡ Isi Otomatis Akun Demo</button>
                 </div>
-                <button type="button" class="btn btn-primary" data-goto="lapor">➕ Tambah Laporan</button>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Email Kampus UIB</label>
+                        <input type="email" id="loginEmail" class="form-control" value="demo@uib.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" class="form-control" value="uib12345" required>
+                    </div>
+                    <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width:100%;">🔐 Masuk ke UIB L&amp;F</button>
+                </form>
             </div>
-            <div class="items-grid" id="myItemsGrid"></div>
         </section>
 
     </main>
@@ -623,56 +674,157 @@
     </footer>
 
     <script>
+        // ================= KONFIGURASI SUPABASE =================
+        const SUPABASE_URL = 'https://dhhptyzyjiqjhwfayzyh.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_CzOeKPNQ1Auk8fw_I79XFA_CD0EVOPq';
+        const TABLE_NAME = 'uib_lnf';
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Data Awal
-            let items = JSON.parse(localStorage.getItem('uib_lnf_data_v2')) || [
-                { id: 1, type: 'found', name: 'KTM Manajemen a.n. Siska', category: 'Dokumen & KTM', location: 'Lobby Gedung B UIB', date: 'Hari ini, 10:30 WIB', contact: '0812-3456-7890', icon: '🪪', isMine: false },
-                { id: 2, type: 'lost', name: 'Charger Laptop Asus ROG', category: 'Elektronik', location: 'Lab Komputer Gedung C', date: 'Kemarin, 15:20 WIB', contact: '0857-9988-1122', icon: '🔌', isMine: false },
-                { id: 3, type: 'found', name: 'Kunci Motor Honda + Gantungan', category: 'Kunci & Aksesoris', location: 'Parkiran Motor UIB', date: 'Hari ini, 08:45 WIB', contact: '0821-4455-6677', icon: '🔑', isMine: false }
-            ];
-
+            let items = [];
             let currentFilter = 'all';
+            let currentUser = null;
 
-            function saveData() {
-                localStorage.setItem('uib_lnf_data_v2', JSON.stringify(items));
-                updateStats();
+            const categoryIcons = {
+                'Dokumen & KTM': '🪪',
+                'Elektronik': '💻',
+                'Kunci & Aksesoris': '🔑',
+                'Perlengkapan Pribadi': '🎒'
+            };
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2800);
             }
 
-            // 2. Fungsi Pindah Halaman
-            function switchPage(pageId) {
-                document.querySelectorAll('.page-view').forEach(page => {
-                    page.classList.remove('active');
-                });
+            // ================= AUTH STATE =================
+            function updateAuthUI() {
+                const navLoginBtn = document.getElementById('navLoginBtn');
+                const authBadge = document.getElementById('authBadge');
+                const logoutBtn = document.getElementById('logoutBtn');
+                const loginNotice = document.getElementById('loginNotice');
+                const submitBtn = document.getElementById('submitReportBtn');
 
-                const targetPage = document.getElementById('view-' + pageId);
-                if (targetPage) {
-                    targetPage.classList.add('active');
+                if (currentUser) {
+                    navLoginBtn.style.display = 'none';
+                    authBadge.style.display = 'inline-flex';
+                    authBadge.textContent = `✅ ${currentUser.email}`;
+                    logoutBtn.style.display = 'inline-flex';
+                    loginNotice.style.display = 'none';
+                    submitBtn.disabled = false;
+                } else {
+                    navLoginBtn.style.display = 'inline-flex';
+                    authBadge.style.display = 'none';
+                    logoutBtn.style.display = 'none';
+                    loginNotice.style.display = 'block';
+                    submitBtn.disabled = true;
+                }
+            }
+
+            async function initSession() {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                currentUser = session ? session.user : null;
+                updateAuthUI();
+
+                supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    currentUser = session ? session.user : null;
+                    updateAuthUI();
+                });
+            }
+
+            document.getElementById('fillDemoBtn').addEventListener('click', () => {
+                document.getElementById('loginEmail').value = 'demo@uib.edu';
+                document.getElementById('loginPassword').value = 'uib12345';
+                showToast('⚡ Kredensial demo terisi.');
+            });
+
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+                const password = document.getElementById('loginPassword').value;
+
+                if (!email.endsWith('@uib.edu') && !email.endsWith('@uib.ac.id')) {
+                    showToast('❌ Gunakan email resmi UIB (@uib.edu / @uib.ac.id).');
+                    return;
                 }
 
+                const btn = document.getElementById('loginSubmitBtn');
+                btn.disabled = true;
+                btn.textContent = 'Memproses...';
+
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+                btn.disabled = false;
+                btn.textContent = '🔐 Masuk ke UIB L&F';
+
+                if (error) {
+                    showToast('❌ Login gagal: ' + error.message);
+                    return;
+                }
+
+                currentUser = data.user;
+                updateAuthUI();
+                showToast('✅ Berhasil login sebagai ' + data.user.email);
+                switchPage('lapor');
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await supabaseClient.auth.signOut();
+                showToast('👋 Kamu telah keluar.');
+                switchPage('beranda');
+            });
+
+            // ================= FETCH DATA DARI SUPABASE =================
+            async function fetchItems() {
+                const { data, error } = await supabaseClient
+                    .from(TABLE_NAME)
+                    .select('*')
+                    .order('id', { ascending: false });
+
+                if (error) {
+                    console.error('Supabase fetch error:', error);
+                    showToast('⚠️ Gagal memuat data dari Supabase.');
+                    return;
+                }
+
+                items = (data || []).map(row => ({
+                    id: row.id,
+                    type: row.jenis_laporan,
+                    name: row.nama_barang,
+                    category: row.kategori,
+                    location: row.lokasi_di_uib,
+                    contact: row.no_whatsapp_aktif,
+                    icon: categoryIcons[row.kategori] || '📦'
+                }));
+
+                updateStats();
+                renderCatalog();
+            }
+
+            // ================= NAVIGASI & RIPPLE =================
+            function switchPage(pageId) {
+                document.querySelectorAll('.page-view').forEach(page => page.classList.remove('active'));
+                const targetPage = document.getElementById('view-' + pageId);
+                if (targetPage) targetPage.classList.add('active');
+
                 document.querySelectorAll('.nav-link').forEach(link => {
-                    if (link.getAttribute('data-goto') === pageId) {
-                        link.classList.add('active');
-                    } else {
-                        link.classList.remove('active');
-                    }
+                    link.classList.toggle('active', link.getAttribute('data-goto') === pageId);
                 });
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-
                 if (pageId === 'katalog') renderCatalog();
-                if (pageId === 'laporan-saya') renderMyItems();
                 updateStats();
             }
 
-            // 3. Pasang Event Klik ke Semua Tombol Navigasi ([data-goto])
             document.querySelectorAll('[data-goto]').forEach(el => {
                 el.addEventListener('click', function() {
-                    const target = this.getAttribute('data-goto');
-                    switchPage(target);
+                    switchPage(this.getAttribute('data-goto'));
                 });
             });
 
-            // 4. Efek Ripple Gelombang pada Semua Tombol
             document.body.addEventListener('click', function(e) {
                 const btn = e.target.closest('.btn, .nav-link, .filter-btn');
                 if (!btn) return;
@@ -689,19 +841,17 @@
 
                 const existing = btn.querySelector('.ripple');
                 if (existing) existing.remove();
-
                 btn.appendChild(ripple);
             });
 
-            // 5. Update Angka Statistik
+            // ================= STATISTIK & KATALOG =================
             function updateStats() {
                 document.getElementById('statTotal').textContent = items.length;
                 document.getElementById('statFound').textContent = items.filter(i => i.type === 'found').length;
                 document.getElementById('statLost').textContent = items.filter(i => i.type === 'lost').length;
             }
 
-            // 6. Render Kartu Barang
-            function createCardHTML(item, allowDelete = false) {
+            function createCardHTML(item) {
                 const isFound = item.type === 'found';
                 return `
                     <div class="item-card">
@@ -714,35 +864,32 @@
                             <h3 class="item-title">${item.name}</h3>
                             <div class="item-meta">
                                 <span>📍 ${item.location}</span>
-                                <span>🕒 ${item.date}</span>
                             </div>
                             <div class="item-footer">
                                 <button type="button" class="btn btn-primary contact-btn" data-contact="${item.contact}" data-name="${item.name}">
                                     💬 Hubungi (${item.contact})
                                 </button>
-                                ${allowDelete ? `<button type="button" class="btn btn-danger delete-btn" data-id="${item.id}">🗑️ Hapus Laporan</button>` : ''}
                             </div>
                         </div>
                     </div>
                 `;
             }
 
-            // 7. Render & Filter Katalog
             function renderCatalog() {
                 const keyword = document.getElementById('searchInput').value.toLowerCase();
                 const filtered = items.filter(item => {
-                    const matchText = item.name.toLowerCase().includes(keyword) || item.location.toLowerCase().includes(keyword);
+                    const matchText = (item.name || '').toLowerCase().includes(keyword) ||
+                                      (item.location || '').toLowerCase().includes(keyword);
                     const matchType = currentFilter === 'all' || item.type === currentFilter;
                     return matchText && matchType;
                 });
 
                 const grid = document.getElementById('catalogGrid');
-                grid.innerHTML = filtered.length 
-                    ? filtered.map(i => createCardHTML(i)).join('') 
-                    : '<p style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:2rem;">Tidak ada barang yang cocok dengan pencarian.</p>';
+                grid.innerHTML = filtered.length
+                    ? filtered.map(i => createCardHTML(i)).join('')
+                    : '<p style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:2rem;">Belum ada laporan barang yang cocok.</p>';
             }
 
-            // Event Pencarian & Filter Katalog
             document.getElementById('searchInput').addEventListener('input', renderCatalog);
 
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -754,16 +901,6 @@
                 });
             });
 
-            // 8. Render Laporan Saya
-            function renderMyItems() {
-                const myItems = items.filter(i => i.isMine);
-                const grid = document.getElementById('myItemsGrid');
-                grid.innerHTML = myItems.length 
-                    ? myItems.map(i => createCardHTML(i, true)).join('') 
-                    : '<p style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:2rem;">Kamu belum pernah membuat laporan barang di perangkat ini.</p>';
-            }
-
-            // 9. Event Klik Tombol Hubungi & Hapus di dalam Card
             document.body.addEventListener('click', function(e) {
                 const contactBtn = e.target.closest('.contact-btn');
                 if (contactBtn) {
@@ -771,58 +908,52 @@
                     const name = contactBtn.getAttribute('data-name');
                     alert(`Informasi Kontak untuk "${name}":\n\nNomor WhatsApp: ${phone}`);
                 }
-
-                const deleteBtn = e.target.closest('.delete-btn');
-                if (deleteBtn) {
-                    const id = Number(deleteBtn.getAttribute('data-id'));
-                    items = items.filter(i => i.id !== id);
-                    saveData();
-                    renderMyItems();
-                    showToast('🗑️ Laporan berhasil dihapus.');
-                }
             });
 
-            // 10. Submit Form Laporan Baru
-            document.getElementById('reportForm').addEventListener('submit', function(e) {
+            // ================= SUBMIT LAPORAN KE SUPABASE =================
+            document.getElementById('reportForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const type = document.getElementById('reportType').value;
-                const categoryIcons = {
-                    'Dokumen & KTM': '🪪',
-                    'Elektronik': '💻',
-                    'Kunci & Aksesoris': '🔑',
-                    'Perlengkapan Pribadi': '🎒'
-                };
-                const cat = document.getElementById('itemCategory').value;
 
-                const newItem = {
-                    id: Date.now(),
-                    type: type,
-                    name: document.getElementById('itemName').value,
-                    category: cat,
-                    location: document.getElementById('itemLocation').value,
-                    date: 'Baru saja',
-                    contact: document.getElementById('itemContact').value,
-                    icon: categoryIcons[cat] || '📦',
-                    isMine: true
+                if (!currentUser) {
+                    showToast('🔒 Silakan login akun UIB terlebih dahulu.');
+                    switchPage('login');
+                    return;
+                }
+
+                const payload = {
+                    jenis_laporan: document.getElementById('reportType').value,
+                    nama_barang: document.getElementById('itemName').value.trim(),
+                    kategori: document.getElementById('itemCategory').value,
+                    lokasi_di_uib: document.getElementById('itemLocation').value.trim(),
+                    no_whatsapp_aktif: document.getElementById('itemContact').value.trim()
                 };
 
-                items.unshift(newItem);
-                saveData();
+                const btn = document.getElementById('submitReportBtn');
+                btn.disabled = true;
+                btn.textContent = 'Mengirim...';
+
+                const { error } = await supabaseClient
+                    .from(TABLE_NAME)
+                    .insert([payload]);
+
+                btn.disabled = false;
+                btn.textContent = '🚀 Publikasikan Laporan';
+
+                if (error) {
+                    console.error('Insert error:', error);
+                    showToast('❌ Gagal mengirim laporan: ' + error.message);
+                    return;
+                }
+
                 this.reset();
-                showToast('✅ Laporan berhasil dipublikasikan!');
+                showToast('✅ Laporan berhasil dipublikasikan ke Supabase!');
+                await fetchItems();
                 switchPage('katalog');
             });
 
-            function showToast(msg) {
-                const toast = document.getElementById('toast');
-                toast.textContent = msg;
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 2800);
-            }
-
-            // Jalankan saat pertama dimuat
-            updateStats();
-            renderCatalog();
+            // Jalankan saat halaman dimuat
+            initSession();
+            fetchItems();
         });
     </script>
 </body>
